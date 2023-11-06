@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>TENN AI Chat</title>
+    <style>
+        body {
+            background-color: #1a1a1a;
+            color: #fff;
+            font-family: Arial, sans-serif;
+            font-size: 16px;
+            line-height: 1.5;
+            margin: 0;
+            padding: 0;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        .chat-box {
+            background-color: #333;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            overflow-y: scroll;
+            padding: 20px;
+            flex: 1;
+            height: calc(100vh - 300px);
+        }
+
+        .chat-box p {
+            margin: 0;
+            padding: 0;
+        }
+
+        .chat-box .user {
+            color: #ffffff;
+        }
+
+        .chat-box .tenn {
+            color: #5ea664;
+        }
+
+        .input-box {
+            display: flex;
+            margin-top: 20px;
+        }
+
+        .input-box input {
+            background-color: #444;
+            border: none;
+            border-radius: 5px;
+            color: #fff;
+            flex: 1;
+            font-size: 16px;
+            padding: 10px;
+        }
+
+        .input-box button {
+            background-color: #203525;
+            border: none;
+            border-radius: 5px;
+            color: #fff;
+            cursor: pointer;
+            font-size: 16px;
+            margin-left: 10px;
+            padding: 10px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h2>TENN AI Chat (Your ID: <span id="ws-id"></span>)</h2>
+        <div class="chat-box" id="chatBox"></div>
+        <div class="input-box">
+            <input type="text" id="messageText" placeholder="Type your message here...">
+            <button type="button" id="sendButton">Send</button>
+        </div>
+    </div>
+
+    <script>
+        var client_id = Date.now();
+        
+        document.querySelector("#ws-id").textContent = client_id;
+        var ws = new WebSocket(`ws://localhost:8000/ws/chat/${client_id}`);
+
+        var chatBox = document.getElementById("chatBox");
+        var messageText = document.getElementById("messageText");
+        var sendButton = document.getElementById("sendButton");
+
+        ws.onmessage = function(event) {
+            var data = JSON.parse(event.data);
+            var answer = "<p class='tenn'>" + data.response + "</p>";
+            chatBox.innerHTML += answer + "<br>";
+            chatBox.scrollTop = chatBox.scrollHeight;
+        };
+
+        sendButton.addEventListener("click", function() {
+            var message = messageText.value;
+            if (message.trim() !== "") {
+                ws.send(JSON.stringify({"prompt": message}));
+                var prompt = "<p class='user'>" + message + "</p>";
+                chatBox.innerHTML += prompt + "<br>";
+                chatBox.scrollTop = chatBox.scrollHeight;
+                messageText.value = "";
+            }
+        });
+
+        messageText.addEventListener("keydown", function(event) {
+            if (event.key === "Enter") {
+                sendButton.click();
+            }
+        });
+    </script>
+</body>
+</html>
